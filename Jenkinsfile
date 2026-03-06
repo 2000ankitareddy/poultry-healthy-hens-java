@@ -22,10 +22,14 @@ pipeline {
         }
 
         stage('Run Container') {
-            steps {
-                sh 'docker run -d -p 2000:80 healthy-hens'
-            }
-        }
+    steps {
+        sh '''
+        docker stop healthy-hens || true
+        docker rm healthy-hens || true
+        docker run -d -p 2000:8080 --name healthy-hens healthy-hens
+        '''
+    }
+}
 
     }
 }
