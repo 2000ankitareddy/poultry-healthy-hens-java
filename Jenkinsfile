@@ -23,7 +23,7 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 8080:8080 healthy-hens'
+                sh 'docker run -d -p 2000:80 healthy-hens'
             }
         }
 
