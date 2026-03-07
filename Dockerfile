@@ -2,6 +2,6 @@ FROM tomcat:9
 
 RUN rm -f /usr/local/tomcat/webapps/*
 
-COPY target/healthy-hens-1.0.war /usr/local/tomcat/webapps/healthy-hens.war
+COPY target/*.war /usr/local/tomcat/webapps/
 
-EXPOSE 2000
+EXPOSE 8080
