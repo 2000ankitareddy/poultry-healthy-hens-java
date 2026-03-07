@@ -5,9 +5,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                credentialsId: 'uday',
-                url: 'https://github.com/Uday-63/poultry-healthy-hens-java.git'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'aniktagit', url: 'https://github.com/2000ankitareddy/poultry-healthy-hens-java.git']])
             }
         }
 
