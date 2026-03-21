@@ -48,12 +48,21 @@ pipeline {
 
             }
         }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                sed -i 's|IMAGE_TAG|${BUILD_NUMBER}|g' deployment.yml
+                kubectl apply -f deployment.yml
+                """
+            }
+        }
     }
 
     post {
 
         success {
-            echo "Build Successful and Docker Image pushed successfully ✅"
+            echo "Build Successful, Image pushed & deployed to Kubernetes successfully ✅"
         }
 
         failure {
