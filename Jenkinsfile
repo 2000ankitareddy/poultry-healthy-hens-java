@@ -2,64 +2,63 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USERNAME = "ankitanallamilli"
-        IMAGE_NAME = "healthy-hens"
+        DOCKER_HUB_USERNAME = "ankitanallamilli"
+        IMAGE_NAME = "${DOCKER_HUB_USERNAME}/healthy-hens-java:${BUILD_NUMBER}"
+    }
+
+    tools {
+        maven "Maven"
+        jdk "JDK17"
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        credentialsId: 'ankitagit',
-                        url: 'https://github.com/2000ankitareddy/poultry-healthy-hens-java.git'
-                    ]]
-                )
+                git url: 'https://github.com/2000ankitareddy/poultry-healthy-hens-java.git', branch: 'main'
             }
         }
 
-        stage('Build WAR') {
+        stage('Build using Maven') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean install'
             }
         }
 
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_USERNAME/$IMAGE_NAME:latest .'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('Docker Login') {
+        stage('Push Image to DockerHub') {
             steps {
+
                 withCredentials([usernamePassword(
-                    credentialsId: 'docker-cred',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
+                    credentialsId: 'ANKITA_DOCK_HUB',
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'PASSWORD'
                 )]) {
+
                     sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    echo $PASSWORD | docker login -u $USERNAME --password-stdin
+                    docker push $IMAGE_NAME
                     '''
                 }
+
             }
+        }
+    }
+
+    post {
+
+        success {
+            echo "Build Successful and Docker Image pushed successfully ✅"
         }
 
-        stage('Push to Docker Hub') {
-            steps {
-                sh 'docker push $DOCKER_USERNAME/$IMAGE_NAME:latest'
-            }
+        failure {
+            echo "Pipeline Failed ❌"
         }
 
-        stage('Run Container') {
-            steps {
-                sh '''
-                docker rm -f healthy-hens || true
-                docker run -d -p 2000:8080 --name healthy-hens $DOCKER_USERNAME/$IMAGE_NAME:latest
-                '''
-            }
-        }
     }
 }
